@@ -15,6 +15,6 @@
     void addNewFile(char*** disk, i_node** memory, sim_values* values, char* filename, const char data[]);
     void showAll(char*** disk, i_node** memory, sim_values* values);
     int checkExistence(char*** disk, i_node** memory, sim_values* values, char* filename);
-    void addDataToDisk(char*** disk, int** blocks, sim_values* values, const char data[], int countBlock);
+    void addDataToDisk(char*** disk, int** blocks, sim_values* values, const char* data, int countBlock);
     void emptyBlock(char* block, int sizeBlock);
 #endif //DISK_H

@@ -5,7 +5,7 @@
 Los tamaños definidos en el sim_values* values corresponden a:<br>
 a - la cantidad de filas del disco<br>
 b - la cantidad de columnas del disco<br>
-c - la cantidad de bytes por bloque del disco<br>
+c - la cantidad de bytes por bloque del disco, mínimo 3<br>
 partition - fila a partir de la cuál los bloques se consideran reservados para archivos, y antes de ella,<br>
 se consideran reservados para guardar la dirección de cada nodo i (excepto el bloque 0 que está reservado)<br>
 sizeMemory - el tamaño de la memoria, por lo tanto la cantidad máxima de nodos i.</p>

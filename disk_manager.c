@@ -1,10 +1,16 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "i_node.h"
+#include "disk.h"
+#include "sim_values.h"
+#include "memory.h"
 #include "disk_manager.h"
 
 void startSimulation(){
     sim_values* values = (sim_values*)calloc(1, sizeof(sim_values));
-    values->a = 17;
-    values->b = 8;
-    values->c = 64;
+    values->a = 17; //cantidad de filas del disco
+    values->b = 8; //cantidad de columnas del disco
+    values->c = 64; //cantidad de bytes por bloque, mínimo 3!!!!
     values->partition = 2;
     values->sizeMemory = 15;
     i_node** memory = initializeMemory(values->sizeMemory); //cada nodo i tiene 8 bloques

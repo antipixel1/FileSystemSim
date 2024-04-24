@@ -23,4 +23,5 @@ void substring(const char origin[], char* destination, int start, int end){
         destination[startDest] = origin[i];
         startDest++;
     }
+    destination[startDest] = '\0';
 }
