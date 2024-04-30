@@ -23,5 +23,13 @@ void substring(const char origin[], char* destination, int start, int end){
         destination[startDest] = origin[i];
         startDest++;
     }
-    destination[startDest] = '\0';
+    destination[startDest] = '\0'; //very important!!
+}
+
+int getStrLen(const char array[]) {
+    int size = 0;
+    while (array[size] != '\0'){
+        size++;
+    }
+    return size;
 }

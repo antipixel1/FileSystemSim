@@ -21,10 +21,10 @@ void destroyMemory(int sizeMemory, i_node** memory) {
 int createINode(i_node** memory, sim_values* values, char* filename) {
     int posMemoria = -1;
     for (int i=0; i<values->sizeMemory && posMemoria == -1; i++){
-        if (memory[i]==0){
+        if (memory[i]==0){ //if the memory position is not being used
             memory[i] = (i_node*)calloc(1, sizeof(i_node));
-            memory[i]->attr = (char*)calloc(128, sizeof(char)); //atributos como el nombre del archivo principalmente
-            memory[i]->positions = (int**)calloc(8, sizeof(int*)); //direcciones a 8 bloques del disco, como máximo
+            memory[i]->attr = (char*)calloc(128, sizeof(char)); //attributes like filename
+            memory[i]->positions = (int**)calloc(8, sizeof(int*)); //directions to 8 disk blocks at most
             for (int j=0; j<8; j++) {
                 memory[i]->positions[j] = (int*)calloc(2, sizeof(int)); 
                 memory[i]->positions[j][0] = -1;

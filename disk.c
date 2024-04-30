@@ -6,15 +6,15 @@ char*** initializeDisk(sim_values* values) {
         disk[i] = (char**)calloc(values->b, sizeof(char*));
         for (int j=0; j<values->b; j++){
             disk[i][j] = (char*)calloc(values->c, sizeof(char));
-            if (!(i==0 && j==0)) { //asume 3 bytes por bloque, mínimo
+            if (!(i==0 && j==0)) { //3 bytes per block, minimum
                 disk[i][j][0] = '-';
                 disk[i][j][1] = '1';
                 disk[i][j][2] = '\0';
             }
         }
     }
-    disk[0][0][0] = '$'; //carácter especial que indica que ese bloque está reservado al ser el primer bloque
-    disk[0][0][1] = '\0'; //carácter terminador
+    disk[0][0][0] = '$'; //special character that indicates the first block is reserved
+    disk[0][0][1] = '\0'; //terminator
     return disk;
 }
 
@@ -33,17 +33,14 @@ void addToFile(char*** disk, i_node** memory, sim_values* values, char* filename
     printf("Nombre del archivo al que se quiere agregar:%s\n", filename);
     int posMemory = checkExistence(disk, memory, values, filename);
     if (posMemory!=-1){
-        int sizeData = 0;
-        while (newData[sizeData]!='\0'){
-            sizeData++;
-        }
-        if (sizeData<8*values->c){ //si el tamaño de los datos es menor de 8 bloques
-            int terminaronBloques = 0;
+        int sizeData = getStrLen(newData);
+        if (sizeData<8*values->c){ //if data size is less than 8 blocks
+            int blocksEnd = 0;
             int j = 0;
-            for (j=0; j<8 && terminaronBloques !=1; j++){
+            for (j=0; j<8 && blocksEnd !=1; j++){
                 if (memory[posMemory]->positions[j][0]==-1){
                     j--;
-                    terminaronBloques = 1;
+                    blocksEnd = 1;
                 }
             }
             printf("Ese archivo tiene  %d bloques antes de ser modificado\n", j);
@@ -61,35 +58,35 @@ void addToFile(char*** disk, i_node** memory, sim_values* values, char* filename
 void editFileBlocks(char*** disk, i_node** memory, sim_values* values, const char newData[], int sizeData, 
 int posMemory, int cantBloques) {
     int savedData = 0;
-    int terminoEscribir = 0;
+    int endWrite = 0;
     printf("El tamaño de los datos es de: %d\n", sizeData);
     for (int k=0; k<cantBloques; k++) {
         emptyBlock(disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]], values->c);
-        if (terminoEscribir == 1) {
+        if (endWrite == 1) {
             memory[posMemory]->positions[k][0] = -1;
             memory[posMemory]->positions[k][1] = -1;
         }
-        for (int l=0; l<values->c &&terminoEscribir!=1; l++) {
+        for (int l=0; l<values->c && endWrite!=1; l++) {
             if (sizeData>1) {
                 disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]][l] = newData[savedData];
                 savedData++;
                 if (savedData>=sizeData){
-                    terminoEscribir = 1;
+                    endWrite = 1;
                 }
             }else if(sizeData==1){
                 disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]][0] = newData[savedData];
                 disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]][1] = 0;
-                terminoEscribir = 1;
+                endWrite = 1;
             }else{ //si los datos están vacíos, entonces se borra el nodo i correspondiente
                 disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]][0] = 0;
                 disk[memory[posMemory]->positions[k][0]][memory[posMemory]->positions[k][1]][1] = 0;
-                terminoEscribir = 1;
+                endWrite = 1;
             }
         }
     }
     if (sizeData>=cantBloques*values->c) { //falta parte del archivo, se necesitan más bloques
         printf("El índice de los datos es: %d\n", savedData);
-        char* missing_data = (char*)calloc(sizeData-savedData+1, sizeof(char));
+        char* missing_data = (char*)calloc(sizeData-savedData+1, sizeof(char)); //the +1 is for the null terminator!
         substring(newData, missing_data, savedData, sizeData);
         addDataToDisk(disk, memory[posMemory]->positions, values, missing_data, cantBloques);
         free(missing_data);
@@ -102,12 +99,12 @@ void addNewFile(char*** disk, i_node** memory, sim_values* values, char* filenam
         for (int i=0; i< values->partition && salir != 1; i++){
             for (int j=0; j< values->b && salir != 1; j++){
                 if (!(i==0 && j==0)) {
-                    if (atoi(disk[i][j])==-1){ //significa que no tiene nodo i asignado
+                    if (atoi(disk[i][j])==-1){ //means the block is empty
                         int posMemoria = createINode(memory,values,filename);
                         addDataToDisk(disk, memory[posMemoria]->positions, values, data, 0);
                         if (posMemoria!=-1) {
                             printf("Nombre del archivo que se esta creando:%s\n", memory[posMemoria]->attr);
-                            intToArray(posMemoria, disk[i][j]); //esto guarda en el disco los punteros a memoria
+                            intToArray(posMemoria, disk[i][j]); //stores the pointer to the memory
                         }else{
                             printf("No se pudo agregar el nuevo archivo.. Espacio en memoria ram lleno");
                         }
@@ -122,21 +119,18 @@ void addNewFile(char*** disk, i_node** memory, sim_values* values, char* filenam
 }
 
 void addDataToDisk(char*** disk, int** blocks, sim_values* values, const char* data, int countBlock) {
-    int salir = 0;
-    int sizeData = 0;
+    int exit = 0;
+    int sizeData = getStrLen(data);
     int savedData = 0;
-    while (data[sizeData]!='\0'){
-        sizeData++;
-    }
-    if (sizeData<8*(values->c)){ //si el tamaño de los datos es menor de 8 bloques
-        for (int i=values->partition; i<values->a &&salir!=1; i++){
-            for(int j=0; j<values->b &&salir!=1; j++){
-                if (atoi(disk[i][j])==-1){ //si el bloque está vacío
-                    for (int k=0; k<values->c &&salir!=1; k++) {
+    if (sizeData<8*(values->c)){ //if data size is less than 8 blocks
+        for (int i=values->partition; i<values->a &&exit!=1; i++){
+            for(int j=0; j<values->b &&exit!=1; j++){
+                if (atoi(disk[i][j])==-1){ //if the block is empty
+                    for (int k=0; k<values->c &&exit!=1; k++) {
                         disk[i][j][k] = data[savedData];
                         savedData++;
                         if (savedData>=sizeData){
-                            salir = 1;
+                            exit = 1;
                         }
                     }
                     blocks[countBlock][0] = i;
